@@ -29,19 +29,21 @@ public class Game extends ApplicationAdapter {
 	OrthographicCamera camera;
 	Vector3 touchK;
 	BitmapFont font;
+	InputKeyboard inputKeyboard;
 
 	Texture[] imgMosquito = new Texture[11];
 	Texture imgBG;
 	Sound[] sndMosq = new Sound[2];
 
-	Mosquito[] mosquito = new Mosquito[25];
+	Mosquito[] mosquito = new Mosquito[5];
 	int frags;
 
 	Player[] players = new Player[6];
 	Player player;
 
 	long timeStart, timeCurrent;
-	boolean gameOver = false;
+	public static final int PLAY_GAME = 0, ENTER_NAME = 1, SHOW_TABLE = 2;
+	int condition = PLAY_GAME;
 
 	@Override
 	public void create() {
@@ -51,6 +53,7 @@ public class Game extends ApplicationAdapter {
 		camera.setToOrtho(false, SCR_WIDTH, SCR_HEIGHT);
 		touchK = new Vector3();
 		font = new BitmapFont();
+		inputKeyboard = new InputKeyboard(SCR_WIDTH, SCR_HEIGHT, 10);
 
 		//textures
 		imgBG = new Texture("background.jpg");
@@ -83,10 +86,11 @@ public class Game extends ApplicationAdapter {
 			touchK.set(Gdx.input.getX(), Gdx.input.getY(), 0);
 			camera.unproject(touchK);
 
-			if(gameOver){
+			if(condition == SHOW_TABLE){
 				gameStart();
-			}else
-			{
+			}
+
+			if(condition==PLAY_GAME) {
 				for (int i = mosquito.length - 1; i >= 0; i--) {
 					if (mosquito[i].isAlive) {
 						if (mosquito[i].hit(touchK.x, touchK.y)) {
@@ -101,14 +105,28 @@ public class Game extends ApplicationAdapter {
 					}
 				}
 			}
+
+			if(condition == ENTER_NAME){
+				inputKeyboard.hit(touchK.x, touchK.y);
+			}
 		}
 
 		//events
 		for (int i = 0; i < mosquito.length; i++) {
 			mosquito[i].move();
 		}
-		if (!gameOver) {
+		if (condition == PLAY_GAME) {
 			timeCurrent = TimeUtils.millis() - timeStart; //timer
+		}
+		if(condition==ENTER_NAME){
+			if(inputKeyboard.endOfEdit()){
+				player.name = inputKeyboard.getText();
+				players[players.length-1].time=player.time;
+				players[players.length-1].name=player.name;
+				sortPlayers();
+				saveTableOfRecords();
+				condition = SHOW_TABLE;
+			}
 		}
 
 
@@ -123,7 +141,8 @@ public class Game extends ApplicationAdapter {
 		font.draw(batch, "комаров расстреляно:" + frags, 10, SCR_HEIGHT - 10);
 		font.draw(batch, timeToString(timeCurrent), SCR_WIDTH - 150, SCR_HEIGHT - 10);
 
-		if(gameOver)
+		if(condition==ENTER_NAME) inputKeyboard.drawKBD(batch);
+		if(condition == SHOW_TABLE)
 			font.draw(batch, tableOfRecordsToString(),SCR_WIDTH/3f,SCR_HEIGHT/4f*3f);
 
 
@@ -136,6 +155,11 @@ public class Game extends ApplicationAdapter {
 		for (int i = 0; i < imgMosquito.length; i++) {
 			imgMosquito[i].dispose();
 		}
+		for (int i = 0; i < sndMosq.length; i++) {
+			sndMosq[i].dispose();
+		}
+		inputKeyboard.dispose();
+
 	}
 
 	void generateFont() {
@@ -161,10 +185,10 @@ public class Game extends ApplicationAdapter {
 	}
 
 	void gameOver() {
-		gameOver = true;
+		condition = ENTER_NAME;
 		player.time=timeCurrent;
 
-		class MyInputListener implements Input.TextInputListener{
+		/*class MyInputListener implements Input.TextInputListener{
 
 			@Override
 			public void input(String text) {
@@ -181,12 +205,12 @@ public class Game extends ApplicationAdapter {
 			}
 		}
 
-		Gdx.input.getTextInput(new MyInputListener(), "Ввидите имя", player.name, "");
+		Gdx.input.getTextInput(new MyInputListener(), "Ввидите имя", player.name, "");*/
 
 	}
 
 	void gameStart(){
-		gameOver = false;
+		condition = PLAY_GAME;
 		frags = 0;
 		timeStart = TimeUtils.millis();
 		for (int i = 0; i < mosquito.length; i++) {
