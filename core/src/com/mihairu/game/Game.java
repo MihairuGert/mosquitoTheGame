@@ -192,6 +192,7 @@ public class Game extends ApplicationAdapter {
 		for (int i = 0; i < mosquito.length; i++) {
 			mosquito[i]= new Mosquito();
 		}
+		loadTableOfRecords();
 	}
 
 	void sortPlayers(){
@@ -234,5 +235,16 @@ public class Game extends ApplicationAdapter {
 			
 		}
 
+	}
+
+	void loadTableOfRecords(){
+		try {
+			Preferences pref = Gdx.app.getPreferences("TableOfRecords");
+			for (int i = 0; i < players.length; i++) {
+				if(pref.contains("name"+i))	players[i].name = pref.getString("name"+i, "null");
+				if(pref.contains("time"+i))	players[i].time = pref.getLong("time"+i, 0);
+			}
+		} catch (Exception e){
+		}
 	}
 }
