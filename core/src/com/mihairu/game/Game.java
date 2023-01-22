@@ -242,7 +242,7 @@ public class Game extends ApplicationAdapter {
 	String tableOfRecordsToString(){
 		String s = "";
 		for (int i = 0; i < players.length-1; i++) {
-			s += players[i].name + "......"+timeToString(players[i].time) +"\n";
+			s += players[i].name + points(players[i].name,13)+timeToString(players[i].time) +"\n";
 		}
 		return s;
 	}
@@ -270,5 +270,14 @@ public class Game extends ApplicationAdapter {
 			}
 		} catch (Exception e){
 		}
+	}
+
+	String points(String name, int length){
+		int n = length-name.length();
+		String s = " ";
+		for (int i = 0; i < n; i++) {
+			s += ".";
+		}
+		return s;
 	}
 }
